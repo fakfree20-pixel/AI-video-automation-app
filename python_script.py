@@ -339,6 +339,16 @@ def create_gradio_ui():
 
 
 if __name__ == "__main__":
-    print("Starting Gradio Web Interface for AI Video Automation Studio...")
-    demo = create_gradio_ui()
-    demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
+    if os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"):
+        print("Running in CI / GitHub Actions mode...")
+        prompt = os.environ.get("PROMPT_TEXT", "The beauty of artificial intelligence and automated content creation.")
+        try:
+            run_pipeline(prompt)
+            print("Pipeline execution successfully completed in CI.")
+        except Exception as e:
+            print(f"Pipeline execution failed: {e}")
+            sys.exit(1)
+    else:
+        print("Starting Gradio Web Interface for AI Video Automation Studio...")
+        demo = create_gradio_ui()
+        demo.launch(server_name="0.0.0.0", server_port=7860, share=False)

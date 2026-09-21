@@ -35,5 +35,6 @@ jobs:
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+        PROMPT_TEXT: ${{ github.event.inputs.prompt_text }}
       run: |
         python python_script.py
