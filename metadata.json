@@ -1,0 +1,6 @@
+{
+  "name": "AI Video Automation Studio",
+  "description": "Complete Python script and web studio for automated AI video generation with Gemini, Edge-TTS, Pexels, and FFmpeg via Gradio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
