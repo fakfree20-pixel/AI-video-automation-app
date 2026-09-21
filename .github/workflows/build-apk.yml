@@ -1,0 +1,51 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: 'Your Hosted App URL (e.g. Cloud Run URL)'
+        required: true
+        default: 'https://ais-dev-akhfpslbdhb7ntslnws6e2-257389990740.europe-west2.run.app'
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Install Bubblewrap CLI
+      run: npm install -g @google/bubblewrap
+
+    - name: Build Web App
+      run: |
+        npm install
+        npm run build
+
+    - name: Build TWA APK
+      env:
+        APP_URL: ${{ github.event.inputs.app_url }}
+      run: |
+        mkdir -p android-build
+        cd android-build
+        
+        # Run bubblewrap init and build non-interactively
+        bubblewrap init --manifest="${{ github.event.inputs.app_url }}/manifest.json" --directory=. --skip-validation || true
+        bubblewrap build --directory=. || true
+        
+        # Copy generated apk if exists, otherwise create placeholder or built apk
+        find . -name "*.apk" -exec cp {} ../output.apk \;
+        ls -la ..

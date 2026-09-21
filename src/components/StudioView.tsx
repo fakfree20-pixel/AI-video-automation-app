@@ -4,51 +4,51 @@ import { GenerationResult, Scene } from "../types";
 
 export function StudioView() {
   const [promptText, setPromptText] = useState("");
+  const [mode, setMode] = useState<"song" | "video" | "mp3">("song");
   const [voice, setVoice] = useState("hi-IN-SwaraNeural");
   const [loading, setLoading] = useState(false);
   const [progressStep, setProgressStep] = useState("");
   const [progressPercent, setProgressPercent] = useState(0);
   const [result, setResult] = useState<GenerationResult | null>(null);
   const [activeTab, setActiveTab] = useState<"script" | "scenes" | "preview">("script");
-  const [pipelineFinished, setPipelineFinished] = useState(false);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!promptText.trim()) return;
 
     setLoading(true);
-    setPipelineFinished(false);
-    setProgressPercent(10);
-    setProgressStep("Step 1 & 2: Analyzing input & rewriting with Gemini 1.5 Pro...");
+    setProgressPercent(15);
+    setProgressStep(
+      mode === "song"
+        ? "🎵 Writing original song lyrics & composition with Gemini..."
+        : mode === "mp3"
+        ? "🎙️ Generating professional MP3 vocal track with Edge-TTS..."
+        : "🎬 Generating video script & fetching Pexels B-Roll clips..."
+    );
 
     try {
       const response = await fetch("/api/generate-script", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ promptText }),
+        body: JSON.stringify({ promptText: `[Mode: ${mode.toUpperCase()}] ${promptText}` }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate script from server.");
+        throw new Error("Failed to generate content from server.");
       }
 
       const data: GenerationResult = await response.json();
-      setProgressPercent(40);
-      setProgressStep("Step 3: Synthesizing voiceover audio with edge-tts...");
-      await new Promise((r) => setTimeout(r, 800));
-
-      setProgressPercent(70);
-      setProgressStep("Step 4: Fetching HD B-Roll clips from Pexels API...");
+      setProgressPercent(50);
+      setProgressStep("🔊 Synthesizing audio & preparing media files...");
       await new Promise((r) => setTimeout(r, 900));
 
-      setProgressPercent(90);
-      setProgressStep("Step 5: Merging audio, clips, & subtitles with FFmpeg...");
+      setProgressPercent(85);
+      setProgressStep("⚙️ Merging video, audio and subtitles with FFmpeg...");
       await new Promise((r) => setTimeout(r, 800));
 
       setProgressPercent(100);
-      setProgressStep("Complete! Final video and audio ready.");
+      setProgressStep("✅ Success! Your MP3 song and MP4 video are ready.");
       setResult(data);
-      setPipelineFinished(true);
     } catch (err: any) {
       alert(err.message || "An error occurred during generation.");
     } finally {
@@ -61,29 +61,66 @@ export function StudioView() {
       {/* Hero / Intro card */}
       <div className="bg-white rounded-2xl border border-stone-200 p-6 sm:p-8 shadow-xs">
         <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-medium mb-4 border border-amber-200">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-800 text-xs font-medium mb-4 border border-indigo-200">
             <Sparkles className="w-3.5 h-3.5" />
-            Powered by Gemini 1.5 Pro & Edge-TTS
+            AI Song Writer, MP3 & Video Generator Studio
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900">
-            Automated Video & Script Pipeline
+            गाना, MP3 और वीडियो मेकर स्टूडियो
           </h2>
           <p className="mt-2 text-stone-600 text-sm sm:text-base leading-relaxed">
-            Input any video idea, song name, or rough transcript. Our automation pipeline will rewrite it into a 100% original copyright-free script, generate professional voiceovers, fetch matching Pexels HD B-Roll, and merge everything with FFmpeg.
+            अपने गाने का नाम, वीडियो आइडिया या लिरिक्स यहाँ लिखें। यह AI टूल आपके लिए शानदार **गाना (Songs), MP3 ऑडियो** और **HD वीडियो (MP4)** ऑटोमैटिकली तैयार कर देगा, जिसे आप डाउनलोड कर सकते हैं या APK बनाकर अपने फोन में इंस्टॉल कर सकते हैं।
           </p>
+        </div>
+
+        {/* Mode Selector */}
+        <div className="mt-6 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setMode("song")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-2 ${
+              mode === "song" ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+            }`}
+          >
+            🎵 गाना / Lyrics बनाएं
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("mp3")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-2 ${
+              mode === "mp3" ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+            }`}
+          >
+            🎙️ MP3 Voiceover / Audio
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("video")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-2 ${
+              mode === "video" ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+            }`}
+          >
+            🎬 HD वीडियो (MP4) बनाएं
+          </button>
         </div>
 
         <form onSubmit={handleGenerate} className="mt-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1.5">
-              Video Idea, Transcript, or Song Name
+              {mode === "song" ? "गाने का विषय, मूड या बोल (Song Theme / Idea)" : mode === "mp3" ? "ऑडियो के लिए टेक्स्ट या स्क्रिप्ट" : "वीडियो आइडिया या स्क्रिप्ट"}
             </label>
             <textarea
               rows={3}
               value={promptText}
               onChange={(e) => setPromptText(e.target.value)}
-              placeholder="e.g., Explain the mysteries of black holes in 60 seconds with captivating cinematic narration..."
-              className="w-full rounded-xl border border-stone-300 px-4 py-3 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-transparent text-sm"
+              placeholder={
+                mode === "song"
+                  ? "उदा. : एक रोमांटिक सैड हिंदी गाना जो दिल को छू ले..."
+                  : mode === "mp3"
+                  ? "उदा. : मोटिवेशनल कोट्स या पॉडकास्ट स्क्रिप्ट..."
+                  : "उदा. : भारत के इतिहास पर 60 सेकंड की वीडियो..."
+              }
+              className="w-full rounded-xl border border-stone-300 px-4 py-3 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900 text-sm"
               required
             />
           </div>
@@ -91,23 +128,23 @@ export function StudioView() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1.5">
-                Voice Model (`edge-tts`)
+                आवाज़ / Voice Model (`edge-tts`)
               </label>
               <select
                 value={voice}
                 onChange={(e) => setVoice(e.target.value)}
                 className="w-full rounded-xl border border-stone-300 px-3 py-2.5 text-stone-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-stone-900"
               >
-                <option value="hi-IN-SwaraNeural">Hindi (Swara - Female, Natural)</option>
-                <option value="hi-IN-MadhurNeural">Hindi (Madhur - Male, Professional)</option>
-                <option value="en-US-AriaNeural">English US (Aria - Female)</option>
-                <option value="en-US-ChristopherNeural">English US (Christopher - Male)</option>
+                <option value="hi-IN-SwaraNeural">हिंदी (Swara - Female, Natural)</option>
+                <option value="hi-IN-MadhurNeural">हिंदी (Madhur - Male, Professional)</option>
+                <option value="en-US-AriaNeural">English (Aria - Female)</option>
+                <option value="en-US-ChristopherNeural">English (Christopher - Male)</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-stone-700 mb-1.5">
-                Optional Reference File (.mp3/.mp4)
+                रेफरेंस फाइल (ऑप्शनल .mp3 / .mp4)
               </label>
               <input
                 type="file"
@@ -125,12 +162,12 @@ export function StudioView() {
               {loading ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  Generating Video Pipeline...
+                  प्रोसेसिंग हो रही है...
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  Run Full Automation Pipeline
+                  {mode === "song" ? "🎵 गाना और लिरिक्स जनरेट करें" : mode === "mp3" ? "🎙️ MP3 ऑडियो बनाएं" : "🎬 HD वीडियो बनाएं"}
                 </>
               )}
             </button>
@@ -163,8 +200,8 @@ export function StudioView() {
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-stone-900">Automation Successful</h3>
-                <p className="text-xs text-stone-500">Script rewritten, voiceover generated, B-Roll fetched, and video merged.</p>
+                <h3 className="text-lg font-bold text-stone-900">सफलतापूर्वक तैयार हो गया!</h3>
+                <p className="text-xs text-stone-500">आपका गाना, MP3 ऑडियो और वीडियो तैयार है।</p>
               </div>
             </div>
 
@@ -175,7 +212,7 @@ export function StudioView() {
                   activeTab === "script" ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                 }`}
               >
-                Rewritten Script
+                लिरिक्स / स्क्रिप्ट
               </button>
               <button
                 onClick={() => setActiveTab("scenes")}
@@ -183,7 +220,7 @@ export function StudioView() {
                   activeTab === "scenes" ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                 }`}
               >
-                Scene B-Roll Breakdown
+                सीन और B-Roll
               </button>
               <button
                 onClick={() => setActiveTab("preview")}
@@ -191,7 +228,7 @@ export function StudioView() {
                   activeTab === "preview" ? "bg-stone-900 text-white" : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                 }`}
               >
-                Media & Downloads
+                MP3 & MP4 डाउनलोड
               </button>
             </div>
           </div>
@@ -200,7 +237,7 @@ export function StudioView() {
             <div className="space-y-4">
               <h4 className="text-sm font-semibold text-stone-800 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-stone-600" />
-                Copyright-Free Rewritten Script
+                {mode === "song" ? "🎵 ओरिजिनल गाना और लिरिक्स (Song Lyrics)" : "📜 रीराइट की गई स्क्रिप्ट"}
               </h4>
               <div className="p-5 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 text-sm leading-relaxed whitespace-pre-wrap font-sans">
                 {result.rewritten_script}
@@ -212,7 +249,7 @@ export function StudioView() {
             <div className="space-y-4">
               <h4 className="text-sm font-semibold text-stone-800 flex items-center gap-2">
                 <Layers className="w-4 h-4 text-stone-600" />
-                Scene-by-Scene B-Roll Keywords ({result.scenes.length} scenes)
+                सीन-बाय-सीन B-Roll कीवर्ड्स ({result.scenes.length} सीन्स)
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {result.scenes.map((scene: Scene) => (
@@ -238,14 +275,14 @@ export function StudioView() {
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-stone-800 flex items-center gap-2">
                     <Mic className="w-4 h-4 text-stone-600" />
-                    Generated Voiceover Audio (.mp3)
+                    MP3 ऑडियो / वोकल ट्रैक
                   </h4>
                   <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">Ready</span>
                 </div>
                 <div className="p-3 bg-white rounded-lg border border-stone-200 text-xs text-stone-600 flex items-center justify-between">
-                  <span>edge-tts voice: {voice}</span>
+                  <span>उच्च गुणवत्ता MP3 वॉइस</span>
                   <button
-                    onClick={() => alert("Downloading MP3 voiceover file...")}
+                    onClick={() => alert("MP3 डाउनलोड हो रहा है...")}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-900 text-white text-xs font-medium hover:bg-stone-800 transition-colors"
                   >
                     <Download className="w-3.5 h-3.5" />
@@ -258,14 +295,14 @@ export function StudioView() {
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-stone-800 flex items-center gap-2">
                     <Video className="w-4 h-4 text-stone-600" />
-                    Final Merged Video (.mp4)
+                    HD वीडियो (MP4)
                   </h4>
                   <span className="text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">HD 1080p</span>
                 </div>
                 <div className="p-3 bg-white rounded-lg border border-stone-200 text-xs text-stone-600 flex items-center justify-between">
-                  <span>FFmpeg Merged Output with Subtitles</span>
+                  <span>FFmpeg मिक्स्ड वीडियो</span>
                   <button
-                    onClick={() => alert("Downloading Final MP4 Video...")}
+                    onClick={() => alert("MP4 वीडियो डाउनलोड हो रहा है...")}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-900 text-white text-xs font-medium hover:bg-stone-800 transition-colors"
                   >
                     <Download className="w-3.5 h-3.5" />

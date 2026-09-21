@@ -1,0 +1,9 @@
+{
+  "name": "AI Video Automation Studio",
+  "short_name": "AI Video Studio",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1c1917",
+  "icons": []
+}
