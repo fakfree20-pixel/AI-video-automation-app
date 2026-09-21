@@ -1,0 +1,39 @@
+name: AI Video Automation Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt_text:
+        description: 'Video Idea or Script'
+        required: true
+        default: 'The beauty of artificial intelligence and automated content creation.'
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install FFmpeg
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install google-generativeai edge-tts requests gradio
+
+    - name: Run Python Automation Script
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+      run: |
+        python python_script.py
