@@ -11,10 +11,11 @@
 import React, { useState } from "react";
 import { StudioView } from "./components/StudioView";
 import { PythonScriptView } from "./components/PythonScriptView";
-import { Film, Code2, Sparkles, ShieldCheck } from "lucide-react";
+import { GitHubExportView } from "./components/GitHubExportView";
+import { Film, Code2, Sparkles, ShieldCheck, Github } from "lucide-react";
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<"studio" | "script">("studio");
+  const [currentTab, setCurrentTab] = useState<"studio" | "script" | "github">("studio");
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 flex flex-col font-sans">
@@ -56,13 +57,30 @@ export default function App() {
               <Code2 className="w-3.5 h-3.5" />
               Python Script
             </button>
+            <button
+              onClick={() => setCurrentTab("github")}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-colors ${
+                currentTab === "github"
+                  ? "bg-stone-900 text-white shadow-xs"
+                  : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+              }`}
+            >
+              <Github className="w-3.5 h-3.5" />
+              GitHub & APK CI/CD
+            </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {currentTab === "studio" ? <StudioView /> : <PythonScriptView />}
+        {currentTab === "studio" ? (
+          <StudioView />
+        ) : currentTab === "script" ? (
+          <PythonScriptView />
+        ) : (
+          <GitHubExportView />
+        )}
       </main>
 
       {/* Footer */}
