@@ -63,47 +63,52 @@ def rewrite_script_and_get_broll(input_text: str) -> Tuple[str, List[Dict[str, s
     print("[Step 2] Rewriting script and generating B-Roll keywords with Gemini...")
     
     prompt = f"""
-    You are an expert viral video producer and scriptwriter.
-    Take the following input (video idea, song name, transcript, or draft):
+    You are an expert songwriter, lyricist, and viral video producer.
+    Take the following input (video idea, song name, transcript, or link):
     
     \"\"\"
     {input_text}
     \"\"\"
     
     Task:
-    1. Rewrite this into a 100% original, engaging, copyright-free video script (Hinglish/Hindi/English as appropriate).
-    2. Break down the script into logical scenes. For each scene, provide precise B-Roll search keywords for Pexels stock video.
+    1. If this is a song request or song mode, generate complete, emotional, and catchy song lyrics (with [Sthayi], [Antara], [Chorus], [Verse]) in Hindi/Urdu/Hinglish or English. If it is a video/script request, create a professional script.
+    2. Break down the script/song into logical scenes. For each scene, provide precise B-Roll search keywords for Pexels stock video.
     
     Output strictly in the following JSON format:
     {{
-      "rewritten_script": "Full rewritten script text here...",
+      "rewritten_script": "Full song lyrics or script text here...",
       "scenes": [
-        {{"scene_number": 1, "narration": "Line for scene 1", "broll_keyword": "cinematic sunset drone shot"}},
-        {{"scene_number": 2, "narration": "Line for scene 2", "broll_keyword": "busy tech office workflow"}}
+        {{"scene_number": 1, "narration": "Line or verse for scene 1", "broll_keyword": "cinematic sunset drone shot"}},
+        {{"scene_number": 2, "narration": "Line or verse for scene 2", "broll_keyword": "busy tech office workflow"}}
       ]
     }}
     """
     
-    try:
-        model = genai.GenerativeModel("gemini-1.5-pro")
-        response = model.generate_content(
-            prompt,
-            generation_config={"response_mime_type": "application/json"}
-        )
-        
-        import json
-        data = json.loads(response.text)
-        rewritten_script = data.get("rewritten_script", input_text)
-        scenes = data.get("scenes", [])
-        return rewritten_script, scenes
-        
-    except Exception as e:
-        print(f"Error in Gemini script rewriting: {e}")
-        # Fallback default script
-        fallback_scenes = [
-            {"scene_number": 1, "narration": input_text, "broll_keyword": "cinematic abstract background"}
-        ]
-        return input_text, fallback_scenes
+    models_to_try = ["gemini-flash-lite-latest", "gemini-3.6-flash", "gemini-3.8-flash"]
+    for m in models_to_try:
+        try:
+            model = genai.GenerativeModel(m)
+            response = model.generate_content(
+                prompt,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            import json
+            data = json.loads(response.text)
+            rewritten_script = data.get("rewritten_script", input_text)
+            scenes = data.get("scenes", [])
+            return rewritten_script, scenes
+        except Exception as e:
+            print(f"Model {m} failed: {e}")
+
+    # Fallback default script if all models fail
+    print("All Gemini models experienced high demand (503). Using smart fallback script.")
+    fallback_script = f"यह {input_text} पर आधारित एक शानदार वीडियो और ऑडियो स्क्रिप्ट है। सर्वर पर अधिक ट्रैफिक के कारण यह फॉलबैक जनरेटेड स्क्रिप्ट है।"
+    fallback_scenes = [
+        {"scene_number": 1, "narration": f"परिचय: {input_text}", "broll_keyword": "cinematic intro"},
+        {"scene_number": 2, "narration": "मुख्य दृश्य और विवरण।", "broll_keyword": "modern technology"},
+        {"scene_number": 3, "narration": "निष्कर्ष और समाप्त।", "broll_keyword": "peaceful nature"}
+    ]
+    return fallback_script, fallback_scenes
 
 
 # ==========================================
